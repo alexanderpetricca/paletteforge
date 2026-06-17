@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -54,12 +53,12 @@ function ImageSelectionWindow({
   }
 
   return (
-    <Card>
+    <Card className="aspect-square">
       <CardHeader>
         <CardTitle>Select Image</CardTitle>
         <CardDescription>Choose image file from your computer</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-5 pb-4 px-7 h-full flex flex-col justify-between">
         <form id="load-image-form" onSubmit={handleSubmit} className="mb-10">
           <div className="flex flex-col gap-6">
             <div className="grid gap-2">
@@ -79,17 +78,17 @@ function ImageSelectionWindow({
             </div>
           </div>
         </form>
+        <div>
+          <Button
+            type="submit"
+            form="load-image-form"
+            disabled={!hasFile}
+            className="w-full"
+          >
+            Load Image
+          </Button>
+        </div>
       </CardContent>
-      <CardFooter className="flex-col gap-2 mt-auto">
-        <Button
-          type="submit"
-          form="load-image-form"
-          className="w-full"
-          disabled={!hasFile}
-        >
-          Load Image
-        </Button>
-      </CardFooter>
     </Card>
   );
 }

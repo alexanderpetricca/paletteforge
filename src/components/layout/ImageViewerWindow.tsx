@@ -1,39 +1,77 @@
 import { type Color } from "colorthief";
+import { Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import ColorChart from "./ColorChart";
+import { Card, CardContent } from "@/components/ui/card";
+import CopyButton from "@/components/layout/CopyButton";
 
 interface ImageViewerWindowProps {
-  previewUrl: string;
   onClearPreviewUrl: () => void;
-  palette: Color[] | null;
-  isLandscape: boolean;
+  dominantColor: Color | null;
+  dominantColorName: string | null;
 }
 
 function ImageViewerWindow({
-  previewUrl,
   onClearPreviewUrl,
-  palette,
-  isLandscape,
+  dominantColor,
+  dominantColorName,
 }: ImageViewerWindowProps) {
-  console.log(isLandscape);
+  const hexCode = dominantColor?.hex();
+  const rgbCode = dominantColor?.css();
+  const oklchCode = dominantColor?.css("oklch");
+  const textColor = dominantColor?.textColor;
 
   return (
-    <Card className="pt-7">
-      <CardContent>
-        <img
-          src={previewUrl}
-          alt="User uploaded image"
-          className="w-full mb-10 rounded"
-        />
-        <ColorChart palette={palette} />
-      </CardContent>
-      <CardFooter className="flex-col gap-2 mt-auto">
-        <Button type="button" onClick={onClearPreviewUrl} variant="outline">
+    <div className="relative">
+      <Card
+        style={{ backgroundColor: dominantColor?.hex() }}
+        className="aspect-square"
+      >
+        <CardContent
+          style={{ color: textColor, borderColor: textColor }}
+          className="pt-5 pb-4 px-7 h-full flex flex-col justify-between"
+        >
+          <h2 className="text-3xl font-extrabold mb-5 max-w-min wrap-break-words line-clamp-2">
+            {dominantColorName}
+          </h2>
+          <div className="flex justify-between items-end">
+            <div className="text-base font-semibold mb-2">
+              <div className="flex items-center gap-1">
+                {hexCode}{" "}
+                <CopyButton
+                  copyValue={hexCode ?? ""}
+                  textColor={textColor ?? "000000"}
+                />
+              </div>
+              <div className="flex items-center gap-1">
+                {rgbCode}{" "}
+                <CopyButton
+                  copyValue={rgbCode ?? ""}
+                  textColor={textColor ?? "000000"}
+                />
+              </div>
+              <div className="flex items-center gap-1">
+                {oklchCode}{" "}
+                <CopyButton
+                  copyValue={oklchCode ?? ""}
+                  textColor={textColor ?? "000000"}
+                />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button
+          type="button"
+          onClick={onClearPreviewUrl}
+          variant="outline"
+          className="hover:cursor-pointer flex gap-1 opacity-50"
+        >
+          <Image />
           Change Image
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
 

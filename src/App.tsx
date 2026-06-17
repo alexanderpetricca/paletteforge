@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { getPaletteSync, type Color } from "colorthief";
+import { getColorSync, type Color } from "colorthief";
+import { colornames } from "color-name-list";
+import nearestColor from "nearest-color";
 import ImageSelectionWindow from "@/components/layout/ImageSelectionWindow";
 import ImageViewerWindow from "@/components/layout/ImageViewerWindow";
 
@@ -15,9 +17,17 @@ function loadImage(url: string): Promise<HTMLImageElement> {
 
 function App() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [palette, setPalette] = useState<Color[] | null>(null);
+  const [dominantColor, setDominantColor] = useState<Color | null>(null);
+  const [dominantColorName, setDominantColorName] = useState<string | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
-  const [isLandscape, setIsLandscape] = useState<boolean>(false);
+
+  const colorMap = colornames.reduce(
+    (o, color) => Object.assign(o, { [color.name]: color.hex }),
+    {},
+  );
+  const getNearestColor = nearestColor.from(colorMap);
 
   // Cleans up object URL if previewURL changes
   useEffect(() => {
@@ -31,9 +41,9 @@ function App() {
   // Reset state function
   function clearPreviewUrl() {
     setPreviewUrl(null);
-    setPalette(null);
+    setDominantColor(null);
+    setDominantColorName(null);
     setError(null);
-    setIsLandscape(false);
   }
 
   // On image upload, create object URL, load to Image object, and parse colour palette.
@@ -45,12 +55,13 @@ function App() {
     try {
       const imgElement = await loadImage(blobUrl);
 
-      // Analyse image dimensions
-      setIsLandscape(imgElement.width >= imgElement.height);
+      // Obtain dominant color
+      const color = getColorSync(imgElement);
+      setDominantColor(color);
 
-      // Obtain colour palette
-      const extractedPalette = getPaletteSync(imgElement, { colorCount: 5 });
-      setPalette(extractedPalette);
+      // Obtain color name
+      const match = getNearestColor(color?.hex());
+      setDominantColorName(match.name);
     } catch (err) {
       // On failure clear url, and present error
       console.error(err);
@@ -61,14 +72,16 @@ function App() {
   }
 
   return (
-    <main className="h-dvh flex justify-center items-center">
-      <div className="w-full">
+    <main
+      className="h-dvh flex justify-center items-center bg-cover bg-center"
+      style={previewUrl ? { backgroundImage: `url(${previewUrl})` } : {}}
+    >
+      <div className="w-80 lg:w-100">
         {previewUrl ? (
           <ImageViewerWindow
-            previewUrl={previewUrl}
             onClearPreviewUrl={clearPreviewUrl}
-            palette={palette}
-            isLandscape={isLandscape}
+            dominantColor={dominantColor}
+            dominantColorName={dominantColorName}
           />
         ) : (
           <ImageSelectionWindow
