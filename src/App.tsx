@@ -73,7 +73,7 @@ function App() {
 
   return (
     <main
-      className="h-dvh flex justify-center items-center bg-cover bg-center"
+      className="h-dvh flex justify-center items-center bg-cover bg-center opacity-90"
       style={previewUrl ? { backgroundImage: `url(${previewUrl})` } : {}}
     >
       <div className="w-80 lg:w-100">

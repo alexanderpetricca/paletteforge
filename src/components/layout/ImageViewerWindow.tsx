@@ -24,17 +24,17 @@ function ImageViewerWindow({
     <div className="relative">
       <Card
         style={{ backgroundColor: dominantColor?.hex() }}
-        className="aspect-square"
+        className="aspect-square py-10 px-5"
       >
         <CardContent
           style={{ color: textColor, borderColor: textColor }}
-          className="pt-5 pb-4 px-7 h-full flex flex-col justify-between"
+          className="h-full flex flex-col justify-between"
         >
           <h2 className="text-3xl font-extrabold mb-5 max-w-min wrap-break-words line-clamp-2">
             {dominantColorName}
           </h2>
           <div className="flex justify-between items-end">
-            <div className="text-base font-semibold mb-2">
+            <div className="text-sm font-semibold">
               <div className="flex items-center gap-1">
                 {hexCode}{" "}
                 <CopyButton

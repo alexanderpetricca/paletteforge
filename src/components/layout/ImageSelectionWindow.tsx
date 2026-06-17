@@ -53,12 +53,12 @@ function ImageSelectionWindow({
   }
 
   return (
-    <Card className="aspect-square">
+    <Card className="aspect-square py-10 px-5">
       <CardHeader>
         <CardTitle>Select Image</CardTitle>
         <CardDescription>Choose image file from your computer</CardDescription>
       </CardHeader>
-      <CardContent className="pt-5 pb-4 px-7 h-full flex flex-col justify-between">
+      <CardContent className="h-full flex flex-col justify-between">
         <form id="load-image-form" onSubmit={handleSubmit} className="mb-10">
           <div className="flex flex-col gap-6">
             <div className="grid gap-2">

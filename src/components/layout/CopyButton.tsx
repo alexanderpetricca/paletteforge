@@ -26,7 +26,12 @@ function CopyButton({ copyValue, textColor }: CopyButtonInterface) {
   }, [copied]);
 
   return (
-    <Button onClick={handleCopy} variant="link" style={{ color: textColor }}>
+    <Button
+      onClick={handleCopy}
+      variant="link"
+      style={{ color: textColor }}
+      className="hover:cursor-pointer"
+    >
       {copied ? <CheckIcon /> : <CopyIcon />}
     </Button>
   );
