@@ -1,4 +1,4 @@
-# Elicere
+# PaletteForge
 
 A minimal web app for extracting dominant colour palettes from images. Upload any image file and instantly get a 5-colour palette with one-click hex code copying.
 
