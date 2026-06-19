@@ -1,14 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getColorSync, type Color } from "colorthief";
 import { colornames } from "color-name-list";
 import nearestColor from "nearest-color";
 import ImageSelectionWindow from "@/components/layout/ImageSelectionWindow";
 import ImageViewerWindow from "@/components/layout/ImageViewerWindow";
 
-// Helper function to convert image from objectUrl to Image object
+const backgroundAssets = Object.values(
+  import.meta.glob(
+    "./assets/images/*.{png,jpg,jpeg,webp,gif,bmp,PNG,JPG,JPEG}",
+    {
+      eager: true,
+      import: "default",
+    },
+  ),
+) as string[];
+
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    if (!url.startsWith("blob:")) {
+      img.crossOrigin = "anonymous";
+    }
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error("Failed to load image element"));
     img.src = url;
@@ -16,12 +28,17 @@ function loadImage(url: string): Promise<HTMLImageElement> {
 }
 
 function App() {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  // Split states: One for the background, one for the active view toggle
+  const [bgUrl, setBgUrl] = useState<string | null>(null);
+  const [isViewingActive, setIsViewingActive] = useState<boolean>(false);
+  const [isInitializing, setIsInitializing] = useState<boolean>(true);
+
   const [dominantColor, setDominantColor] = useState<Color | null>(null);
   const [dominantColorName, setDominantColorName] = useState<string | null>(
     null,
   );
   const [error, setError] = useState<string | null>(null);
+  const currentRequestId = useRef(0);
 
   const colorMap = colornames.reduce(
     (o, color) => Object.assign(o, { [color.name]: color.hex }),
@@ -29,57 +46,71 @@ function App() {
   );
   const getNearestColor = nearestColor.from(colorMap);
 
-  // Cleans up object URL if previewURL changes
+  // Clean up old blob URLs when background changes
   useEffect(() => {
     return () => {
-      if (previewUrl?.startsWith("blob:")) {
-        URL.revokeObjectURL(previewUrl);
+      if (bgUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(bgUrl);
       }
     };
-  }, [previewUrl]);
+  }, [bgUrl]);
 
-  // Reset state function
-  function clearPreviewUrl() {
-    setPreviewUrl(null);
+  // Load random image on start
+  useEffect(() => {
+    if (backgroundAssets.length > 0) {
+      const randomIndex = Math.floor(Math.random() * backgroundAssets.length);
+      processImageByUrl(backgroundAssets[randomIndex]).finally(() =>
+        setIsInitializing(false),
+      );
+    }
+  }, []);
+
+  async function processImageByUrl(url: string) {
+    const requestId = ++currentRequestId.current;
+
+    setError(null);
     setDominantColor(null);
     setDominantColorName(null);
-    setError(null);
-  }
-
-  // On image upload, create object URL, load to Image object, and parse colour palette.
-  async function processLocalFile(file: File) {
-    setError(null);
-    const blobUrl = URL.createObjectURL(file);
-    setPreviewUrl(blobUrl);
+    setBgUrl(url);
 
     try {
-      const imgElement = await loadImage(blobUrl);
+      const imgElement = await loadImage(url);
+      if (requestId !== currentRequestId.current) return;
 
-      // Obtain dominant color
       const color = getColorSync(imgElement);
       setDominantColor(color);
 
-      // Obtain color name
       const match = getNearestColor(color?.hex());
       setDominantColorName(match.name);
+      setIsViewingActive(true);
     } catch (err) {
-      // On failure clear url, and present error
+      if (requestId !== currentRequestId.current) return;
       console.error(err);
-
-      clearPreviewUrl();
-      setError("Failed to process image. Please try a different file.");
+      clearViewOnly();
+      setError("Failed to process image.");
     }
+  }
+
+  async function processLocalFile(file: File) {
+    const blobUrl = URL.createObjectURL(file);
+    await processImageByUrl(blobUrl);
+  }
+
+  // Closes the info card to show the upload form, but LEAVES the background image intact
+  function clearViewOnly() {
+    setIsViewingActive(false);
+    setError(null);
   }
 
   return (
     <main
-      className="h-dvh flex justify-center items-center bg-cover bg-center opacity-90"
-      style={previewUrl ? { backgroundImage: `url(${previewUrl})` } : {}}
+      className="h-dvh flex justify-center items-center bg-cover bg-center opacity-90 transition-all duration-500"
+      style={bgUrl ? { backgroundImage: `url(${bgUrl})` } : {}}
     >
       <div className="w-80 lg:w-100">
-        {previewUrl ? (
+        {isInitializing ? null : isViewingActive ? (
           <ImageViewerWindow
-            onClearPreviewUrl={clearPreviewUrl}
+            onClearPreviewUrl={clearViewOnly} // Simply hides the viewer card
             dominantColor={dominantColor}
             dominantColorName={dominantColorName}
           />
@@ -87,6 +118,8 @@ function App() {
           <ImageSelectionWindow
             onLocalFileSubmit={processLocalFile}
             processingError={error}
+            showCancel={dominantColor !== null}
+            onCancel={() => setIsViewingActive(true)}
           />
         )}
       </div>

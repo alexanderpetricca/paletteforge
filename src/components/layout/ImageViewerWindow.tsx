@@ -30,8 +30,10 @@ function ImageViewerWindow({
           style={{ color: textColor, borderColor: textColor }}
           className="h-full flex flex-col justify-between"
         >
-          <h2 className="text-3xl font-extrabold mb-5 max-w-min wrap-break-words line-clamp-2">
-            {dominantColorName}
+          <h2 className="text-3xl font-extrabold mb-5">
+            {dominantColorName?.split(" ").map((word, i) => (
+              <span key={i} className="block">{word}</span>
+            ))}
           </h2>
           <div className="flex justify-between items-end">
             <div className="text-sm font-semibold">

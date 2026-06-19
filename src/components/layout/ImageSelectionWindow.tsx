@@ -23,11 +23,15 @@ const ACCEPT_ATTR = ".jpg,.jpeg,.png,.webp,.gif,.bmp";
 interface ImageSelectionWindowProps {
   onLocalFileSubmit: (file: File) => Promise<void>;
   processingError: string | null;
+  showCancel: boolean;
+  onCancel: () => void;
 }
 
 function ImageSelectionWindow({
   onLocalFileSubmit,
   processingError,
+  showCancel,
+  onCancel,
 }: ImageSelectionWindowProps) {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [hasFile, setHasFile] = useState(false);
@@ -78,12 +82,22 @@ function ImageSelectionWindow({
             </div>
           </div>
         </form>
-        <div>
+        <div className="flex gap-3 w-full">
+          {showCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+          )}
           <Button
             type="submit"
             form="load-image-form"
             disabled={!hasFile}
-            className="w-full"
+            className="flex-1"
           >
             Load Image
           </Button>
